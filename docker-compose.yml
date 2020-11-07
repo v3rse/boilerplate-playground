@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+  mongodb:
+      image: mongo
+      container_name: mongodb
+      ports:
+        - "27017:27017"
+      volumes:
+        - disxt-mongodb-data:/data/db
+      networks: 
+        - disxt
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+      DB_URL: "mongodb://mongodb:27017/disxt"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env:ro
+    networks: 
+      - disxt
+volumes: 
+  disxt-mongodb-data:
+    name: disxt_mongodb_data
+
+networks: 
+  disxt:
+    name: disxt_local
+    driver: bridge
