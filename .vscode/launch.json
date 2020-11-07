@@ -13,8 +13,7 @@
             ],
             "preLaunchTask": "${defaultBuildTask}",
             "program": "${workspaceFolder}/dist/index.js",
-            "sourceMaps": true,
-            "console": "integratedTerminal"
+            "sourceMaps": true
         }
     ]
 }
