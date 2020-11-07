@@ -18,7 +18,7 @@ export default function createLogger ({ config, label, level }) {
     level: level || 'info',
     formatters: {
       level (label, number) {
-        return { level: label }
+        return { level: config.NODE_ENV === 'development' ? label : number }
       }
     },
     redact: {
