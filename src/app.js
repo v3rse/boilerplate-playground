@@ -2,8 +2,10 @@ import express from 'express'
 
 const app = express()
 
-app.get('/', (req, res) => {
-  res.send('Hello Nana')
-})
+export default function createApp (container) {
+  app.get('/', (req, res) => {
+    res.send('Hello Nana')
+  })
 
-export default app
+  return app
+}

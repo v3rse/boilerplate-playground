@@ -1,7 +1,7 @@
 import http from 'http'
 
-import app from './app'
+import createApp from './app'
 
-const server = http.createServer(app)
-
-export default server
+export default function createServer (container) {
+  return http.createServer(createApp(container))
+}

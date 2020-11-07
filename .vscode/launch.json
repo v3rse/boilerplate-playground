@@ -12,7 +12,9 @@
                 "<node_internals>/**"
             ],
             "preLaunchTask": "${defaultBuildTask}",
-            "program": "${workspaceFolder}/dist/index.js"
+            "program": "${workspaceFolder}/dist/index.js",
+            "sourceMaps": true,
+            "console": "integratedTerminal"
         }
     ]
 }

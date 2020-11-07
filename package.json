@@ -14,7 +14,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "awilix": "^4.2.7",
+    "dotenv": "^8.2.0",
+    "dotenv-expand": "^5.1.0",
+    "dotenv-extended": "^2.9.0",
+    "dotenv-parse-variables": "^1.0.1",
+    "express": "^4.17.1",
+    "mongoose": "^5.10.13",
+    "pino": "^6.7.0",
+    "pino-pretty": "^4.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",
