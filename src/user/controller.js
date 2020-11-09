@@ -1,5 +1,5 @@
 import autoBind from 'auto-bind'
-import { NO_CONTENT } from 'http-status'
+import { CREATED, NO_CONTENT } from 'http-status'
 
 export default class UserController {
   constructor ({ userService }) {
@@ -11,7 +11,7 @@ export default class UserController {
     try {
       const user = await this.userService.register(req.body)
 
-      res.status(201).json({
+      res.status(CREATED).json({
         message: 'New user created',
         user
       })

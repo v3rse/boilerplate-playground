@@ -1,4 +1,5 @@
 import autoBind from 'auto-bind'
+import { CREATED, OK } from 'http-status'
 
 export default class ProductController {
   constructor ({ productService }) {
@@ -10,7 +11,7 @@ export default class ProductController {
     try {
       const product = await this.productService.createProduct(req.body, req.user)
 
-      res.status(201).json({
+      res.status(CREATED).json({
         message: 'New product created',
         product
       })
@@ -23,7 +24,7 @@ export default class ProductController {
     try {
       const results = await this.productService.listProducts(req.query.page, req.query.limit, req.user)
 
-      res.status(200).json(results)
+      res.status(OK).json(results)
     } catch (error) {
       next(error)
     }
@@ -33,7 +34,7 @@ export default class ProductController {
     try {
       const product = await this.productService.getProduct(req.params.productId, req.user)
 
-      res.status(200).json({
+      res.status(OK).json({
         product
       })
     } catch (error) {

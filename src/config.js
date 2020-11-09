@@ -1,3 +1,4 @@
+import fs from 'fs'
 import dotenv from 'dotenv-extended'
 import dotenvExpand from 'dotenv-expand'
 import dotenvParseVariables from 'dotenv-parse-variables'
@@ -5,6 +6,9 @@ import dotenvParseVariables from 'dotenv-parse-variables'
 import pkg from '../package.json'
 
 export default function loadConfig () {
+  if (!fs.existsSync('.env')) {
+    return process.env
+  }
   let env = dotenv.load({
     silent: false,
     errorOnMissing: true,

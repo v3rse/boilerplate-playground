@@ -16,11 +16,14 @@ services:
     container_name: api
     environment:
       DB_URL: "mongodb://mongodb:27017/disxt"
+      LOG_LABEL: "disxt_api"
+      LOG_LEVEL: "debug"
+      PORT: 3000
+      HOSTNAME: "localhost"
+      JWT_SECRET: "secret"
+      JWT_EXPIRY: 86400
     ports:
       - "3000:3000"
-    volumes:
-      - ./src:/app/src
-      - ./.env:/app/.env:ro
     networks: 
       - disxt
 volumes: 

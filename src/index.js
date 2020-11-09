@@ -6,7 +6,7 @@ const server = createServer(container)
 const { config, logger, db } = container
 
 db.on('connecting', () => {
-  logger.debug('connecting to db..')
+  logger.debug(`connecting to db: ${config.DB_URL}`)
 })
 db.on('connected', () => {
   logger.info('connected to db')

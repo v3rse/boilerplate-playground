@@ -6,7 +6,8 @@
   "scripts": {
     "build": "babel src -d dist",
     "start": "node dist/index.js",
-    "test": "NODE_ENV=test jest --coverage --runInBand",
+    "test": "NODE_ENV=test jest --runInBand",
+    "test:coverage": "NODE_ENV=test jest --coverage --runInBand",
     "lint": "eslint src/**/*.js",
     "lint:fix": "npm run lint -- --fix",
     "seed": "node dist/utils/seed.js"
