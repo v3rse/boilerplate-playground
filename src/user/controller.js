@@ -1,4 +1,5 @@
 import autoBind from 'auto-bind'
+import { NO_CONTENT } from 'http-status'
 
 export default class UserController {
   constructor ({ userService }) {
@@ -26,6 +27,16 @@ export default class UserController {
       res.json({
         token
       })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async logout (req, res, next) {
+    try {
+      await this.userService.logout(req.user, req.headers.authorization.split(' ')[1])
+
+      res.sendStatus(NO_CONTENT)
     } catch (error) {
       next(error)
     }

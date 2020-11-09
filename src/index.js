@@ -1,21 +1,9 @@
-import loadConfig from './config'
-import createLogger from './logger'
+import container from './container'
 import createServer from './server'
-import createDbConnection from './db'
-
-const config = loadConfig()
-
-const db = createDbConnection({ connectionUrl: config.DB_URL })
-
-const logger = createLogger({ config, label: config.LOG_LABEL, level: config.LOG_LEVEL })
-
-const container = {
-  db,
-  config,
-  logger
-}
 
 const server = createServer(container)
+
+const { config, logger, db } = container
 
 db.on('connecting', () => {
   logger.debug('connecting to db..')

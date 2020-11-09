@@ -1,6 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import getUserRoutes from './user/routes'
+import getProductRotes from './product/routes'
 
 const app = express()
 
@@ -11,6 +12,7 @@ export default function createApp (container) {
 
   // set up routes
   app.use('/users', getUserRoutes(container))
+  app.use('/products', getProductRotes(container))
 
   app.use((err, req, res, next) => {
     logger.error(err)

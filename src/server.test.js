@@ -4,10 +4,12 @@ import request from 'supertest'
 import createServer from './server'
 import createDbConnection from './db'
 import loadConfig from './config'
-import createUserModel from './user/model'
+import createUserModel, { createTokenBlacklistModel } from './user/model'
+import createProductModel from './product/model'
 import UserService from './user/service'
-import { BAD_REQUEST, CREATED, FORBIDDEN, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status'
+import { BAD_REQUEST, CREATED, FORBIDDEN, NOT_FOUND, NO_CONTENT, OK, UNAUTHORIZED } from 'http-status'
 import createLogger from './logger'
+import { adminUserData, clientUserData, productData, multipleProductsData } from './utils/fixtures'
 
 const mongod = new MongoMemoryServer()
 
@@ -15,7 +17,7 @@ describe('API Spec', () => {
   let api
   let server
   let db
-  let userModel
+  let userModel, productModel, tokenBlackListModel
   let userService
 
   beforeAll(async () => {
@@ -28,10 +30,15 @@ describe('API Spec', () => {
     userModel = createUserModel({ db })
     userService = new UserService({ config, logger, userModel })
 
+    productModel = createProductModel({ db })
+
+    tokenBlackListModel = createTokenBlacklistModel({ db })
+
     api = request(server)
   })
 
   afterAll(async () => {
+    await tokenBlackListModel.deleteMany({})
     await server.close()
     await db.close()
     await mongod.stop()
@@ -39,22 +46,6 @@ describe('API Spec', () => {
 
   describe('/users', () => {
     const root = '/users'
-    const clientUserData = {
-      name: 'John',
-      lastname: 'Doe',
-      username: 'jd',
-      password: 'topsecret',
-      age: 30
-    }
-
-    const adminUserData = {
-      name: 'King',
-      lastname: 'Man',
-      username: 'overlord',
-      password: 'private',
-      age: 30,
-      role: 'admin'
-    }
 
     describe('POST /register', () => {
       const userFields = Object.keys(clientUserData)
@@ -130,6 +121,40 @@ describe('API Spec', () => {
         })
       })
     })
+    describe('POST /logout', () => {
+      let clientToken
+
+      beforeAll(async () => {
+        await userService.register(clientUserData)
+        const res = await api
+          .post(`${root}/login`)
+          .send({
+            username: clientUserData.username,
+            password: clientUserData.password
+          })
+        clientToken = res.body.token
+      })
+
+      afterAll(async () => {
+        await userModel.deleteMany({})
+      })
+
+      it('should log user out', async () => {
+        const response = await api
+          .post(`${root}/logout`)
+          .set('Authorization', `Bearer ${clientToken}`)
+
+        expect(response.status).toBe(NO_CONTENT)
+      })
+
+      it('should not allow logout user to make using old token', async () => {
+        const response = await api
+          .post(`${root}/logout`)
+          .set('Authorization', `Bearer ${clientToken}`)
+
+        expect(response.status).toBe(FORBIDDEN)
+      })
+    })
     describe('PATCH /:userId/role', () => {
       let clientId
       let adminToken
@@ -160,7 +185,7 @@ describe('API Spec', () => {
         clientToken = res.body.token
       })
 
-      afterEach(async () => {
+      afterAll(async () => {
         await userModel.deleteMany({})
       })
 
@@ -185,5 +210,167 @@ describe('API Spec', () => {
       })
     })
   })
-  describe('/products', () => {})
+
+  describe('/products', () => {
+    const root = '/products'
+    let adminToken
+    let clientToken
+
+    beforeAll(async () => {
+      // seed admin
+      await userService.register(adminUserData)
+
+      // login as admin
+      let res = await api
+        .post('/users/login')
+        .send({
+          username: adminUserData.username,
+          password: adminUserData.password
+        })
+
+      adminToken = res.body.token
+
+      await userService.register(clientUserData)
+
+      res = await api
+        .post('/users/login')
+        .send({
+          username: clientUserData.username,
+          password: clientUserData.password
+        })
+
+      clientToken = res.body.token
+    })
+
+    afterAll(async () => {
+      await userModel.deleteMany({})
+    })
+
+    describe('POST /', () => {
+      const productFields = Object.keys(productData)
+
+      let newProduct
+
+      beforeEach(() => {
+        newProduct = { ...productData }
+      })
+
+      afterAll(async () => {
+        await productModel.deleteMany({})
+      })
+
+      it('should create new product', async () => {
+        const response = await api
+          .post(`${root}/`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send(newProduct)
+        expect(response.status).toBe(CREATED)
+      })
+
+      describe('Failure', () => {
+        for (const field of productFields) {
+          it(`should return 400 when ${field} is missing`, async () => {
+            delete newProduct[field]
+            const response = await api
+              .post(`${root}/`)
+              .set('Authorization', `Bearer ${adminToken}`)
+              .send(newProduct)
+            expect(response.status).toBe(BAD_REQUEST)
+          })
+        }
+        it('should not allow client user to create product', async () => {
+          const response = await api
+            .post(`${root}/`)
+            .set('Authorization', `Bearer ${clientToken}`)
+            .send(newProduct)
+          expect(response.status).toBe(FORBIDDEN)
+        })
+      })
+    })
+    describe('GET /:productId', () => {
+      let productId
+
+      beforeAll(async () => {
+        // create product
+        const res = await api
+          .post(`${root}/`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send(productData)
+
+        productId = res.body.product._id
+      })
+
+      afterAll(async () => {
+        await productModel.deleteMany({})
+      })
+
+      it('should return product', async () => {
+        const response = await api
+          .get(`${root}/${productId}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+        expect(response.status).toBe(OK)
+        expect(response.body.product.name).toBe(productData.name)
+      })
+
+      it('should return "created_by" field for admin user', async () => {
+        const response = await api
+          .get(`${root}/${productId}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+        expect(response.body.product.created_by).toBeTruthy()
+      })
+
+      it('should not return "created_by" field for non-admin user', async () => {
+        const response = await api
+          .get(`${root}/${productId}`)
+          .set('Authorization', `Bearer ${clientToken}`)
+        expect(response.body.product.created_by).toBeUndefined()
+      })
+    })
+
+    describe('GET /', () => {
+      beforeAll(async () => {
+        // create products
+        for (const product of multipleProductsData) {
+          await api
+            .post(`${root}/`)
+            .set('Authorization', `Bearer ${adminToken}`)
+            .send(product)
+        }
+      })
+
+      afterAll(async () => {
+        await productModel.deleteMany({})
+      })
+
+      it('should return products', async () => {
+        const response = await api
+          .get(`${root}/`)
+          .set('Authorization', `Bearer ${adminToken}`)
+        expect(response.status).toBe(OK)
+        expect(response.body.products[0].name).toBe(multipleProductsData[0].name)
+      })
+
+      it('should return "created_by" field for admin user', async () => {
+        const response = await api
+          .get(`${root}/`)
+          .set('Authorization', `Bearer ${adminToken}`)
+        expect(response.body.products[0].created_by).toBeTruthy()
+      })
+
+      it('should not return "created_by" field for non-admin user', async () => {
+        const response = await api
+          .get(`${root}/`)
+          .set('Authorization', `Bearer ${clientToken}`)
+        expect(response.body.products[0].created_by).toBeUndefined()
+      })
+
+      it('should paginate results', async () => {
+        const response = await api
+          .get(`${root}/?page=2&limit=2`)
+          .set('Authorization', `Bearer ${adminToken}`)
+
+        expect(response.body.products[0].name).toBe(multipleProductsData[2].name)
+      })
+    })
+  })
 })

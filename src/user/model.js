@@ -1,10 +1,28 @@
 import { Schema } from 'mongoose'
 
+const tokenBlackList = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  token: {
+    type: String,
+    required: true,
+    index: true
+  }
+})
+
+export function createTokenBlacklistModel ({ db }) {
+  return db.model('TokenBlacklist', tokenBlackList)
+}
+
 const userSchema = new Schema({
   username: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   password: {
     type: String,
