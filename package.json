@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "babel src -d dist",
+    "clean": "rimraf dist",
+    "build": "npm run clean; tsc",
     "start": "node dist/index.js",
     "test": "NODE_ENV=test jest --runInBand",
     "test:coverage": "NODE_ENV=test jest --coverage --runInBand",
-    "lint": "eslint src/**/*.js",
+    "lint": "eslint . --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "seed": "node dist/utils/seed.js"
   },
@@ -35,21 +36,17 @@
     "pino-pretty": "^4.3.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.12.1",
-    "@babel/core": "^7.12.3",
-    "@babel/node": "^7.12.6",
-    "@babel/preset-env": "^7.12.1",
-    "@babel/register": "^7.12.1",
-    "babel-plugin-add-module-exports": "^1.0.4",
+    "@types/jest": "^26.0.15",
+    "@typescript-eslint/eslint-plugin": "^4.8.1",
+    "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.12.1",
-    "eslint-config-standard": "^16.0.1",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jest": "^24.1.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
     "faker": "^5.1.0",
     "jest": "^26.6.3",
     "mongodb-memory-server": "^6.9.2",
-    "supertest": "^6.0.1"
+    "rimraf": "^3.0.2",
+    "supertest": "^6.0.1",
+    "ts-jest": "^26.4.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
   }
 }
