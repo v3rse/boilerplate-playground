@@ -15,7 +15,9 @@
                 "src/types/*"
             ]
         },
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
     },
     "include": [
         "src/**/*"
